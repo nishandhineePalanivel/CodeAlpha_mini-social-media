@@ -67,17 +67,17 @@ const loginUser = async (req, res) => {
 
     if (user && (await user.matchPassword(password))) {
       res.json({
-        success: true,
-        message: 'Logged in successfully',
-        data: {
-          _id: user.id,
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          profileImage: user.profileImage,
-          token: generateToken(user._id),
-        }
-      });
+  success: true,
+  message: 'Logged in successfully',
+  token: generateToken(user._id),
+  user: {
+    _id: user.id,
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    profileImage: user.profileImage,
+  }
+});
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
