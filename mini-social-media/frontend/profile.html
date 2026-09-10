@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Mini Social Media</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">MiniSocial</div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="search.html">Search</a>
+        <a href="profile.html" class="active">Profile</a>
+        <a href="#" id="logout-btn">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card profile-header" id="profile-container">
+      <div class="text-center">Loading profile...</div>
+    </div>
+
+    <!-- Edit Profile Modal / Form -->
+    <div class="card hidden" id="edit-profile-form-container">
+      <h3>Edit Profile</h3>
+      <form id="edit-profile-form" class="mt-1">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="edit-name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea id="edit-bio" class="form-control" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn">Save Changes</button>
+        <button type="button" class="btn btn-outline" id="cancel-edit-btn">Cancel</button>
+      </form>
+    </div>
+
+    <h3 class="mb-1">Posts</h3>
+    <div id="user-posts-container">
+      <div class="text-center">Loading posts...</div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>
