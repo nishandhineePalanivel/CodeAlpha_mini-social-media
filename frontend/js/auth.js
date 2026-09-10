@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const { status, data } = await fetchAPI('/auth/login', {
           method: 'POST',
-          body: JSON.stringify({ email, password })
+         body: JSON.stringify({ emailOrUsername: email, password })
         });
 
         if (status === 200 && data.success) {
