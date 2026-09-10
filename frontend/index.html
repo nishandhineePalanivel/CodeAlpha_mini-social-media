@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feed - MiniSocial</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <!-- Mobile Top Nav -->
+  <div class="mobile-top-nav">
+    <div class="mobile-logo">MiniSocial</div>
+    <div onclick="toggleTheme()" style="cursor:pointer; font-size:1.2rem;"><i class="fa-solid fa-moon"></i></div>
+  </div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <i class="fa-brands fa-instagram"></i> MiniSocial
+      </div>
+      <div class="nav-menu">
+        <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+        <a href="search.html" class="nav-item"><i class="fa-solid fa-magnifying-glass"></i> <span>Search</span></a>
+        <a href="profile.html" class="nav-item"><i class="fa-regular fa-user"></i> <span>Profile</span></a>
+        <div class="nav-item" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> <span>Theme</span></div>
+        <a href="#" id="logout-btn" class="nav-item" style="margin-top:auto;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span></a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Create Post -->
+      <div class="create-post-box">
+        <div class="avatar" id="my-avatar"></div>
+        <form id="create-post-form" class="create-post-form">
+          <textarea id="post-content" class="create-post-input" placeholder="What's on your mind?" rows="2" required></textarea>
+          <div class="create-post-actions">
+            <button type="submit" class="btn">Post</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Feed -->
+      <div id="feed-container">
+        <!-- Skeletons -->
+        <div class="skeleton-post">
+          <div class="skeleton-header">
+            <div class="skeleton skeleton-avatar"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
+          <div class="skeleton skeleton-content"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Panel (Desktop only) -->
+    <aside class="right-panel">
+      <div style="font-weight:600; margin-bottom:15px; color:var(--text-secondary);">Suggested for you</div>
+      <!-- Suggestions will be populated here -->
+      <div class="user-result-card" style="padding:10px 0; border:none;">
+        <div class="user-info">
+          <div class="avatar"></div>
+          <div>
+            <div style="font-weight:600; font-size:0.9rem;">new_user</div>
+            <div style="font-size:0.8rem; color:var(--text-secondary);">Suggested</div>
+          </div>
+        </div>
+        <button class="btn btn-outline" style="width:auto; padding:4px 12px; font-size:0.85rem;">Follow</button>
+      </div>
+    </aside>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/post.js"></script>
+  <script src="js/feed.js"></script>
+</body>
+</html>

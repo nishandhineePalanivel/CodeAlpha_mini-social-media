@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search - MiniSocial</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+  <div class="mobile-top-nav">
+    <div class="mobile-logo">MiniSocial</div>
+    <div onclick="toggleTheme()" style="cursor:pointer; font-size:1.2rem;"><i class="fa-solid fa-moon"></i></div>
+  </div>
+
+  <div class="app-layout">
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <i class="fa-brands fa-instagram"></i> MiniSocial
+      </div>
+      <div class="nav-menu">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+        <a href="search.html" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i> <span>Search</span></a>
+        <a href="profile.html" class="nav-item"><i class="fa-regular fa-user"></i> <span>Profile</span></a>
+        <div class="nav-item" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> <span>Theme</span></div>
+        <a href="#" id="logout-btn" class="nav-item" style="margin-top:auto;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span></a>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="search-container">
+        <form id="search-form">
+          <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" class="search-input" placeholder="Search users by name or username..." autocomplete="off">
+          </div>
+        </form>
+      </div>
+      <div id="search-results">
+        <div class="text-center text-secondary mt-2">Find your friends...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/search.js"></script>
+</body>
+</html>
