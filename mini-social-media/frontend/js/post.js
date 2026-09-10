@@ -122,33 +122,35 @@ function renderPost(post, currentUser, likedPostIds = []) {
     <div class="post" id="post-${post._id}">
       <div class="post-header">
         <div class="user-info">
-          <div class="user-names">
-            <h4><a href="profile.html?id=${post.user._id}" style="color: var(--text-primary)">${post.user.name}</a></h4>
-            <span>@${post.user.username} • ${new Date(post.createdAt).toLocaleDateString()}</span>
-          </div>
+          <div class="avatar"></div>
+          <a href="profile.html?id=${post.user._id}"><strong>${post.user.username}</strong></a>
         </div>
-        ${isOwner ? `
-          <div>
-            <button class="action-btn" onclick="editPost('${post._id}')">Edit</button>
-            <button class="action-btn" style="color: var(--error-color)" onclick="deletePost('${post._id}')">Delete</button>
-          </div>
-        ` : ''}
+        ${isOwner ? `<div><button class="action-btn" onclick="deletePost('${post._id}')" style="font-size:0.9rem;">🗑️</button></div>` : ''}
       </div>
-      <div class="post-content" id="post-content-${post._id}">${post.content}</div>
+
+      <div class="post-content" id="post-content-${post._id}">
+        ${post.content}
+      </div>
+
       <div class="post-actions">
         ${isLiked ? 
-          `<button class="action-btn liked" onclick="unlikePost('${post._id}', this)">❤️ Un-like</button>` :
-          `<button class="action-btn" onclick="likePost('${post._id}', this)">🤍 Like</button>`
+          `<button class="action-btn liked" onclick="unlikePost('${post._id}', this)">❤️</button>` :
+          `<button class="action-btn" onclick="likePost('${post._id}', this)">🤍</button>`
         }
-        <button class="action-btn" onclick="toggleComments('${post._id}')">💬 Comments</button>
+        <button class="action-btn" onclick="toggleComments('${post._id}')">💬</button>
       </div>
+
+      <div class="post-caption">
+        <strong>${post.user.username}</strong> ${post.content}
+      </div>
+      <div class="post-date">${new Date(post.createdAt).toLocaleDateString()}</div>
       
       <div class="comments-section hidden" id="comments-${post._id}">
-        <form style="display: flex; gap: 10px; margin-bottom: 10px;" onsubmit="addComment(event, '${post._id}')">
-          <input type="text" id="comment-input-${post._id}" class="form-control" placeholder="Write a comment..." required>
-          <button type="submit" class="btn">Send</button>
+        <form style="display: flex; gap: 10px; margin: 10px 15px;" onsubmit="addComment(event, '${post._id}')">
+          <input type="text" id="comment-input-${post._id}" class="form-control" placeholder="Add a comment..." required style="background:transparent; border:none; border-bottom:1px solid #dbdbdb; border-radius:0;">
+          <button type="submit" style="background:none; border:none; color:#0095f6; font-weight:bold; cursor:pointer;">Post</button>
         </form>
-        <div id="comments-list-${post._id}"></div>
+        <div id="comments-list-${post._id}" style="padding: 0 15px; margin-top: 10px; font-size: 0.9rem;"></div>
       </div>
     </div>
   `;
