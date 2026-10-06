@@ -14,7 +14,9 @@ const likePost = async (req, res) => {
       user: req.user.id,
     });
 
-    res.status(201).json({ success: true, message: 'Post liked', data: like });
+    const likesCount = await Like.countDocuments({ post: req.params.postId });
+
+    res.status(201).json({ success: true, message: 'Post liked', data: like, likesCount });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({ success: false, message: 'You already liked this post' });
@@ -32,7 +34,10 @@ const unlikePost = async (req, res) => {
     }
 
     await like.deleteOne();
-    res.json({ success: true, message: 'Post unliked' });
+
+    const likesCount = await Like.countDocuments({ post: req.params.postId });
+
+    res.json({ success: true, message: 'Post unliked', likesCount });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -42,7 +47,7 @@ const unlikePost = async (req, res) => {
 const getLikes = async (req, res) => {
   try {
     const likes = await Like.find({ post: req.params.postId }).populate('user', 'name username profileImage');
-    res.json({ success: true, data: likes });
+    res.json({ success: true, data: likes, likesCount: likes.length });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
