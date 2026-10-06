@@ -51,6 +51,10 @@ app.post('/api/posts/:postId/like', protect, likePost);
 app.delete('/api/posts/:postId/like', protect, unlikePost);
 app.get('/api/posts/:postId/likes', getLikes);
 
+// Comment routes used by the frontend: /api/comments/:postId
+app.post('/api/comments/:postId', protect, addComment);
+app.get('/api/comments/:postId', getComments);
+
 // Error Middleware
 app.use(notFound);
 app.use(errorHandler);
