@@ -1,124 +1,90 @@
 const Post = require('../models/Post');
-const Comment = require('../models/Comment');
 const Like = require('../models/Like');
+
+// Attach likesCount to a list of lean post objects
+async function withLikeCounts(posts) {
+  if (!posts.length) return posts;
+  const counts = await Like.aggregate([
+    { $match: { post: { $in: posts.map((p) => p._id) } } },
+    { $group: { _id: '$post', count: { $sum: 1 } } },
+  ]);
+  const countMap = Object.fromEntries(counts.map((c) => [c._id.toString(), c.count]));
+  return posts.map((p) => ({ ...p, likesCount: countMap[p._id.toString()] || 0 }));
+}
 
 // @desc    Create a post
 // @route   POST /api/posts
 // @access  Private
 const createPost = async (req, res) => {
   try {
-    if (!req.body.content) {
-      return res.status(400).json({ success: false, message: 'Please add content' });
+    const { content } = req.body;
+    if (!content || !content.trim()) {
+      return res.status(400).json({ success: false, message: 'Content is required' });
     }
 
-    const post = await Post.create({
-      content: req.body.content,
-      image: req.body.image || null,
-      user: req.user.id,
-    });
-
-    const populatedPost = await post.populate('user', 'name username profileImage');
-    res.status(201).json({ success: true, message: 'Post created successfully', data: populatedPost });
+    const post = await Post.create({ user: req.user.id, content: content.trim() });
+    res.status(201).json({ success: true, data: post });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Get all posts
+// @desc    Get all posts (newest first) with like counts
 // @route   GET /api/posts
-// @access  Public
+// @access  Private
 const getPosts = async (req, res) => {
   try {
-    const { userId } = req.query;
-    const filter = userId ? { user: userId } : {};
-
-    const posts = await Post.find(filter)
+    const posts = await Post.find()
+      .populate('user', 'name username profileImage')
       .sort({ createdAt: -1 })
-      .populate('user', 'name username profileImage');
+      .lean();
 
-    res.json({ success: true, data: posts });
+    const data = await withLikeCounts(posts);
+    res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Get post by ID
+// @desc    Get one post with like count
 // @route   GET /api/posts/:id
-// @access  Public
+// @access  Private
 const getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate('user', 'name username profileImage');
+    const post = await Post.findById(req.params.id)
+      .populate('user', 'name username profileImage')
+      .lean();
 
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    res.json({ success: true, data: post });
+    const [data] = await withLikeCounts([post]);
+    res.json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Update a post
-// @route   PUT /api/posts/:id
-// @access  Private
-const updatePost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-
-    // Check for user
-    if (post.user.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'User not authorized to update this post' });
-    }
-
-    const updatedPost = await Post.findByIdAndUpdate(
-      req.params.id,
-      { content: req.body.content },
-      { new: true }
-    ).populate('user', 'name username profileImage');
-
-    res.json({ success: true, message: 'Post updated', data: updatedPost });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// @desc    Delete a post
+// @desc    Delete own post
 // @route   DELETE /api/posts/:id
 // @access  Private
 const deletePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
-
-    // Check for user
     if (post.user.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'User not authorized to delete this post' });
+      return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    // Cascade delete comments and likes associated with this post
-    await Comment.deleteMany({ post: req.params.id });
-    await Like.deleteMany({ post: req.params.id });
-    
+    await Like.deleteMany({ post: post._id });
     await post.deleteOne();
-
     res.json({ success: true, message: 'Post deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-module.exports = {
-  createPost,
-  getPosts,
-  getPostById,
-  updatePost,
-  deletePost,
-};
+module.exports = { createPost, getPosts, getPostById, deletePost };
