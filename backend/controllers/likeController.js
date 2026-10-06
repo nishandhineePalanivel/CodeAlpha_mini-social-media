@@ -1,13 +1,10 @@
 const Like = require('../models/Like');
 const Post = require('../models/Post');
 
-// @desc    Like a post
-// @route   POST /api/posts/:postId/like
-// @access  Private
+// POST /api/likes/:postId  (also /api/posts/:postId/like)
 const likePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
-
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
@@ -19,7 +16,6 @@ const likePost = async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Post liked', data: like });
   } catch (error) {
-    // Check if it's a duplicate like error (MongoDB code 11000)
     if (error.code === 11000) {
       return res.status(409).json({ success: false, message: 'You already liked this post' });
     }
@@ -27,13 +23,10 @@ const likePost = async (req, res) => {
   }
 };
 
-// @desc    Unlike a post
-// @route   DELETE /api/posts/:postId/like
-// @access  Private
+// DELETE /api/likes/:postId  (also /api/posts/:postId/like)
 const unlikePost = async (req, res) => {
   try {
     const like = await Like.findOne({ post: req.params.postId, user: req.user.id });
-
     if (!like) {
       return res.status(404).json({ success: false, message: 'Like not found' });
     }
@@ -45,12 +38,20 @@ const unlikePost = async (req, res) => {
   }
 };
 
-// @desc    Get likes for a post
-// @route   GET /api/posts/:postId/likes
-// @access  Public
+// GET /api/posts/:postId/likes
 const getLikes = async (req, res) => {
   try {
     const likes = await Like.find({ post: req.params.postId }).populate('user', 'name username profileImage');
+    res.json({ success: true, data: likes });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/likes/my-likes
+const getMyLikes = async (req, res) => {
+  try {
+    const likes = await Like.find({ user: req.user.id }).populate('post', '_id');
     res.json({ success: true, data: likes });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -61,4 +62,5 @@ module.exports = {
   likePost,
   unlikePost,
   getLikes,
+  getMyLikes,
 };
