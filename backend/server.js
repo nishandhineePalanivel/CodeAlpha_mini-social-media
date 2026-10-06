@@ -38,6 +38,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/users', require('./routes/followRoutes')); // Merging into users route base
 app.use('/api/posts', require('./routes/postRoutes'));
 app.use('/api/comments', require('./routes/commentRoutes'));
+app.use('/api/likes', require('./routes/likeRoutes'));
 
 // Nested routes mapping
 const { addComment, getComments } = require('./controllers/commentController');
