@@ -1,138 +1,46 @@
-const Post = require('../models/Post');
-const Like = require('../models/Like');
-const Comment = require('../models/Comment');
+const express = require('express');
+const multer = require('multer');
+const router = express.Router();
+const {
+  createPost,
+  getPosts,
+  getPostById,
+  getPostImage,
+  updatePost,
+  deletePost,
+} = require('../controllers/postController');
+const { protect } = require('../middleware/authMiddleware');
 
-async function withCounts(posts) {
-  if (!posts.length) return posts;
-  const ids = posts.map((p) => p._id);
+const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-  const [likes, comments] = await Promise.all([
-    Like.aggregate([
-      { $match: { post: { $in: ids } } },
-      { $group: { _id: '$post', count: { $sum: 1 } } },
-    ]),
-    Comment.aggregate([
-      { $match: { post: { $in: ids } } },
-      { $group: { _id: '$post', count: { $sum: 1 } } },
-    ]),
-  ]);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 3 * 1024 * 1024 },
+  fileFilter: (req, file, cb) =>
+    ALLOWED.includes(file.mimetype)
+      ? cb(null, true)
+      : cb(new Error('Only JPG, PNG, WEBP or GIF images are allowed')),
+});
 
-  const likeMap = Object.fromEntries(likes.map((c) => [c._id.toString(), c.count]));
-  const commentMap = Object.fromEntries(comments.map((c) => [c._id.toString(), c.count]));
-
-  return posts.map(({ image, ...p }) => ({
-    ...p,
-    hasImage: !!(image && image.contentType),
-    likesCount: likeMap[p._id.toString()] || 0,
-    commentsCount: commentMap[p._id.toString()] || 0,
-  }));
-}
-
-// POST /api/posts  (multipart: content + optional image)
-const createPost = async (req, res) => {
-  try {
-    const content = (req.body.content || '').trim();
-    if (!content && !req.file) {
-      return res.status(400).json({ success: false, message: 'Write something or add an image' });
+const uploadImage = (req, res, next) =>
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      const message = err.code === 'LIMIT_FILE_SIZE' ? 'Image must be under 3 MB' : err.message;
+      return res.status(400).json({ success: false, message });
     }
+    next();
+  });
 
-    const post = await Post.create({
-      user: req.user.id,
-      content,
-      ...(req.file && { image: { data: req.file.buffer, contentType: req.file.mimetype } }),
-    });
-    res.status(201).json({ success: true, data: { _id: post._id } });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+// Public on purpose: <img> tags can't send the Authorization header
+router.get('/:id/image', getPostImage);
 
-// GET /api/posts  (optional ?userId=)
-const getPosts = async (req, res) => {
-  try {
-    const filter = {};
-    if (req.query.userId) filter.user = req.query.userId;
+router.route('/')
+  .get(protect, getPosts)
+  .post(protect, uploadImage, createPost);
 
-    const posts = await Post.find(filter)
-      .select('-image.data')
-      .populate('user', 'name username profileImage')
-      .sort({ createdAt: -1 })
-      .lean();
-    res.json({ success: true, data: await withCounts(posts) });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+router.route('/:id')
+  .get(protect, getPostById)
+  .put(protect, updatePost)
+  .delete(protect, deletePost);
 
-// GET /api/posts/:id
-const getPostById = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id)
-      .select('-image.data')
-      .populate('user', 'name username profileImage')
-      .lean();
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-    const [data] = await withCounts([post]);
-    res.json({ success: true, data });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// GET /api/posts/:id/image
-const getPostImage = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id).select('image');
-    if (!post || !post.image || !post.image.data) return res.status(404).end();
-    res.set('Content-Type', post.image.contentType);
-    res.set('Cache-Control', 'public, max-age=86400');
-    res.send(post.image.data);
-  } catch (error) {
-    res.status(404).end();
-  }
-};
-
-// PUT /api/posts/:id
-const updatePost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-    if (post.user.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-    const { content } = req.body;
-    if (!content || !content.trim()) {
-      return res.status(400).json({ success: false, message: 'Content is required' });
-    }
-    post.content = content.trim();
-    await post.save();
-    res.json({ success: true, data: { _id: post._id, content: post.content } });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// DELETE /api/posts/:id
-const deletePost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-    if (post.user.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-    await Like.deleteMany({ post: post._id });
-    await Comment.deleteMany({ post: post._id });
-    await post.deleteOne();
-    res.json({ success: true, message: 'Post deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-module.exports = { createPost, getPosts, getPostById, getPostImage, updatePost, deletePost };
+module.exports = router;
