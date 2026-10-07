@@ -9,12 +9,12 @@ const postSchema = mongoose.Schema(
     },
     content: {
       type: String,
-      required: [true, 'Please add text content'],
       maxlength: 1000,
+      default: '',
     },
     image: {
-      type: String,
-      default: null,
+      data: Buffer,
+      contentType: String,
     },
   },
   {
