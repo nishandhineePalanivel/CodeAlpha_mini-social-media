@@ -266,3 +266,29 @@ textarea.form-control { resize: vertical; min-height: 90px; line-height: 1.45; }
 
 #profile-container { padding: 24px 0 8px; }
 #user-posts-container { width: 100%; }
+
+/* ===== Profile header ===== */
+.profile-header {
+  display: flex; align-items: center; gap: 40px;
+  padding: 8px 0 28px;
+}
+.profile-avatar-large {
+  width: 150px; height: 150px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #e1306c, #f7a13b);
+}
+.profile-info { flex: 1; min-width: 0; }
+.profile-top {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 16px; margin-bottom: 16px;
+}
+.profile-top h2 { margin: 0; font-size: 24px; font-weight: 600; word-break: break-word; }
+.profile-top .btn { width: auto; padding: 6px 18px; }
+.profile-stats { display: flex; gap: 28px; margin-bottom: 16px; font-size: 15px; }
+.profile-bio { line-height: 1.5; word-break: break-word; }
+.profile-bio div { margin-top: 2px; color: var(--text-secondary); }
+
+@media (max-width: 700px) {
+  .profile-header { flex-direction: column; text-align: center; gap: 18px; }
+  .profile-avatar-large { width: 96px; height: 96px; }
+  .profile-top, .profile-stats { justify-content: center; }
+}
