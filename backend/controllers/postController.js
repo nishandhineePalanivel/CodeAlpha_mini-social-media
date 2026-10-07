@@ -27,24 +27,59 @@ async function withCounts(posts) {
   }));
 }
 
-// POST /api/posts
+async function withCounts(posts) {
+  if (!posts.length) return posts;
+  const ids = posts.map((p) => p._id);
+
+  const [likes, comments] = await Promise.all([
+    Like.aggregate([
+      { $match: { post: { $in: ids } } },
+      { $group: { _id: '$post', count: { $sum: 1 } } },
+    ]),
+    Comment.aggregate([
+      { $match: { post: { $in: ids } } },
+      { $group: { _id: '$post', count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const likeMap = Object.fromEntries(likes.map((c) => [c._id.toString(), c.count]));
+  const commentMap = Object.fromEntries(comments.map((c) => [c._id.toString(), c.count]));
+
+  return posts.map(({ image, ...p }) => ({
+    ...p,
+    hasImage: !!(image && image.contentType),
+    likesCount: likeMap[p._id.toString()] || 0,
+    commentsCount: commentMap[p._id.toString()] || 0,
+  }));
+}
+
+// POST /api/posts  (multipart: content + optional image)
 const createPost = async (req, res) => {
   try {
-    const { content } = req.body;
-    if (!content || !content.trim()) {
-      return res.status(400).json({ success: false, message: 'Content is required' });
+    const content = (req.body.content || '').trim();
+    if (!content && !req.file) {
+      return res.status(400).json({ success: false, message: 'Write something or add an image' });
     }
-    const post = await Post.create({ user: req.user.id, content: content.trim() });
-    res.status(201).json({ success: true, data: post });
+
+    const post = await Post.create({
+      user: req.user.id,
+      content,
+      ...(req.file && { image: { data: req.file.buffer, contentType: req.file.mimetype } }),
+    });
+    res.status(201).json({ success: true, data: { _id: post._id } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /api/posts
+// GET /api/posts  (optional ?userId=)
 const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find()
+    const filter = {};
+    if (req.query.userId) filter.user = req.query.userId;
+
+    const posts = await Post.find(filter)
+      .select('-image.data')
       .populate('user', 'name username profileImage')
       .sort({ createdAt: -1 })
       .lean();
@@ -58,6 +93,7 @@ const getPosts = async (req, res) => {
 const getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
+      .select('-image.data')
       .populate('user', 'name username profileImage')
       .lean();
     if (!post) {
@@ -70,45 +106,17 @@ const getPostById = async (req, res) => {
   }
 };
 
-// PUT /api/posts/:id
-const updatePost = async (req, res) => {
+// GET /api/posts/:id/image
+const getPostImage = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-    if (post.user.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-    const { content } = req.body;
-    if (!content || !content.trim()) {
-      return res.status(400).json({ success: false, message: 'Content is required' });
-    }
-    post.content = content.trim();
-    await post.save();
-    res.json({ success: true, data: post });
+    const post = await Post.findById(req.params.id).select('image');
+    if (!post || !post.image || !post.image.data) return res.status(404).end();
+    res.set('Content-Type', post.image.contentType);
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(post.image.data);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(404).end();
   }
 };
 
-// DELETE /api/posts/:id
-const deletePost = async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-    if (post.user.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-    await Like.deleteMany({ post: post._id });
-    await Comment.deleteMany({ post: post._id });
-    await post.deleteOne();
-    res.json({ success: true, message: 'Post deleted' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-module.exports = { createPost, getPosts, getPostById, updatePost, deletePost };
+module.exports = { createPost, getPosts, getPostById, updatePost, deletePost, getPostImage };
