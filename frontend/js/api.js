@@ -3,11 +3,13 @@ const API_URL = '/api';
 // Utility for fetching data
 async function fetchAPI(endpoint, options = {}) {
   const token = localStorage.getItem('token');
-  
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+
+  const headers = { ...options.headers };
+
+  // Let the browser set the Content-Type (with boundary) for file uploads
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -20,7 +22,7 @@ async function fetchAPI(endpoint, options = {}) {
     });
 
     const data = await response.json();
-    
+
     // Auto-logout if unauthorized (token expired)
     if (response.status === 401 && token) {
       localStorage.removeItem('token');
@@ -47,7 +49,7 @@ function getUser() {
 function checkAuth() {
   const token = localStorage.getItem('token');
   const path = window.location.pathname;
-  
+
   if (!token && !path.includes('login.html') && !path.includes('register.html')) {
     window.location.href = 'login.html';
   } else if (token && (path.includes('login.html') || path.includes('register.html'))) {
@@ -58,7 +60,7 @@ function checkAuth() {
 // Global logout handler
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
-  
+
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
