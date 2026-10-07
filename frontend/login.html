@@ -45,7 +45,6 @@
     }
     .auth-field input::placeholder { color: var(--text-secondary); }
     .auth-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,149,246,.2); }
-    /* keep the browser's autofill from turning the field white */
     .auth-field input:-webkit-autofill {
       -webkit-text-fill-color: var(--text);
       -webkit-box-shadow: 0 0 0 100px var(--bg) inset;
@@ -90,8 +89,8 @@
 
       <form id="login-form">
         <div class="auth-field">
-          <i class="fa-regular fa-envelope"></i>
-          <input type="email" id="email" placeholder="Email" autocomplete="email" required>
+          <i class="fa-regular fa-user"></i>
+          <input type="text" id="identifier" placeholder="Email or username" autocomplete="username" required>
         </div>
         <div class="auth-field">
           <i class="fa-solid fa-lock"></i>
@@ -118,17 +117,14 @@
       const { status, data } = await fetchAPI('/auth/login', {
         method: 'POST',
         body: JSON.stringify({
-          email: document.getElementById('email').value.trim(),
+          emailOrUsername: document.getElementById('identifier').value.trim(),
           password: document.getElementById('password').value,
         }),
       });
 
-      const token = data.token || data.data?.token;
-      const user = data.user || data.data?.user || data.data;
-
-      if (status >= 200 && status < 300 && token) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+      if (status >= 200 && status < 300 && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         window.location.href = 'index.html';
       } else {
         errorBox.textContent = data.message || 'Login failed. Check your email and password.';
