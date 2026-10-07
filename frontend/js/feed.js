@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
   const createPostForm = document.getElementById('create-post-form');
   const feedContainer = document.getElementById('feed-container');
+  const imageInput = document.getElementById('post-image');
+  const preview = document.getElementById('image-preview');
   const currentUser = getUser();
 
   const ICONS = {
@@ -22,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="post-avatar"></div>
           <strong>${escapeHTML(name)}</strong>
         </div>
-        <div class="post-content">${escapeHTML(post.content)}</div>
+        ${post.hasImage ? `<img class="post-image" src="/api/posts/${post._id}/image" alt="Post image" loading="lazy">` : ''}
+        ${post.content ? `<div class="post-content ${post.hasImage ? 'caption' : ''}">${escapeHTML(post.content)}</div>` : ''}
         <div class="post-actions">
           <button class="action-btn lk-btn ${liked ? 'liked' : ''}" data-post-id="${post._id}" data-liked="${liked}" aria-label="Like">
             ${ICONS.heart}<span class="like-count" data-post-id="${post._id}">${post.likesCount || 0}</span>
@@ -82,24 +85,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ----- Image picker -----
+  function clearImage() {
+    if (imageInput) imageInput.value = '';
+    if (preview) {
+      preview.innerHTML = '';
+      preview.classList.add('hidden');
+    }
+  }
+
+  imageInput?.addEventListener('change', () => {
+    const file = imageInput.files[0];
+    if (!file) return clearImage();
+    if (file.size > 3 * 1024 * 1024) {
+      showToast('Image must be under 3 MB', 'error');
+      return clearImage();
+    }
+    preview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Preview"><button type="button" class="remove-image">✕</button>`;
+    preview.classList.remove('hidden');
+  });
+
+  preview?.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-image')) clearImage();
+  });
+
+  // ----- Create post (text and/or image) -----
   if (createPostForm) {
     createPostForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const contentInput = document.getElementById('post-content');
-      const btn = createPostForm.querySelector('button');
+      const btn = createPostForm.querySelector('button[type="submit"]');
+      const file = imageInput?.files[0];
+
+      if (!contentInput.value.trim() && !file) {
+        showToast('Write something or add an image', 'error');
+        return;
+      }
+
       btn.textContent = 'Posting...';
       btn.disabled = true;
 
-      const { status, data } = await fetchAPI('/posts', {
-        method: 'POST',
-        body: JSON.stringify({ content: contentInput.value }),
-      });
+      const formData = new FormData();
+      formData.append('content', contentInput.value);
+      if (file) formData.append('image', file);
+
+      const { status, data } = await fetchAPI('/posts', { method: 'POST', body: formData });
 
       btn.textContent = 'Post';
       btn.disabled = false;
 
       if (status === 201) {
         contentInput.value = '';
+        clearImage();
         if (typeof showToast === 'function') showToast('Post created successfully!');
         loadFeed();
       } else if (typeof showToast === 'function') {
@@ -108,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ----- Like, comment toggle, share -----
   feedContainer.addEventListener('click', async (e) => {
     const likeBtn = e.target.closest('.lk-btn');
     if (likeBtn) {
@@ -155,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ----- Add comment -----
   feedContainer.addEventListener('submit', async (e) => {
     const form = e.target.closest('.comment-form');
     if (!form) return;
