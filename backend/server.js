@@ -41,6 +41,10 @@ app.post('/api/posts/:postId/like', protect, likePost);
 app.delete('/api/posts/:postId/like', protect, unlikePost);
 app.get('/api/posts/:postId/likes', getLikes);
 
+// Comment routes the frontend calls: /api/comments/:postId
+app.get('/api/comments/:postId', getComments);
+app.post('/api/comments/:postId', protect, addComment);
+
 app.use(notFound);
 app.use(errorHandler);
 
