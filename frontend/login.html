@@ -6,38 +6,137 @@
   <title>Login - MiniSocial</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
-  <script src="js/theme.js"></script>
+  <style>
+    .auth-page {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px; position: relative; overflow: hidden; background: var(--bg);
+    }
+    .auth-page::before, .auth-page::after {
+      content: ''; position: absolute; border-radius: 50%; filter: blur(110px); opacity: .35; pointer-events: none;
+    }
+    .auth-page::before { width: 420px; height: 420px; background: #e1306c; top: -120px; left: -100px; }
+    .auth-page::after  { width: 380px; height: 380px; background: #0095f6; bottom: -120px; right: -80px; }
+
+    .auth-card {
+      position: relative; z-index: 1; width: 100%; max-width: 380px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+      padding: 40px 32px 28px; box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+    .auth-logo {
+      text-align: center; font-size: 34px; font-weight: 800; letter-spacing: -.5px;
+      background: linear-gradient(135deg, #e1306c, #f7a13b);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      margin: 0 0 6px;
+    }
+    .auth-tagline { text-align: center; color: var(--text-secondary); font-size: 14px; margin: 0 0 28px; }
+    .auth-title { font-size: 20px; font-weight: 600; text-align: center; margin: 0 0 20px; }
+
+    .auth-field { position: relative; margin-bottom: 14px; }
+    .auth-field i {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-secondary); font-size: 15px; pointer-events: none;
+    }
+    .auth-field input {
+      width: 100%; margin: 0; padding: 13px 14px 13px 42px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+      font-size: 15px; outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .auth-field input::placeholder { color: var(--text-secondary); }
+    .auth-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,149,246,.2); }
+    /* keep the browser's autofill from turning the field white */
+    .auth-field input:-webkit-autofill {
+      -webkit-text-fill-color: var(--text);
+      -webkit-box-shadow: 0 0 0 100px var(--bg) inset;
+    }
+
+    .auth-submit {
+      width: 100%; margin-top: 6px; padding: 13px; border: 0; border-radius: 10px;
+      background: linear-gradient(135deg, #0095f6, #1877f2); color: #fff;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: transform .1s ease, opacity .15s ease;
+    }
+    .auth-submit:hover { opacity: .92; }
+    .auth-submit:active { transform: scale(.98); }
+    .auth-submit:disabled { opacity: .6; cursor: default; }
+
+    .auth-error {
+      display: none; margin: 0 0 14px; padding: 10px 12px; border-radius: 8px;
+      background: rgba(237,73,86,.12); border: 1px solid rgba(237,73,86,.4);
+      color: #ff6b78; font-size: 13px; text-align: center;
+    }
+    .auth-error.show { display: block; }
+
+    .auth-divider { height: 1px; background: var(--border); margin: 24px 0 18px; }
+    .auth-switch { text-align: center; font-size: 14px; color: var(--text-secondary); margin: 0; }
+    .auth-switch a { color: var(--accent); font-weight: 600; }
+    .auth-switch a:hover { text-decoration: underline; }
+
+    @media (max-width: 440px) {
+      .auth-card { padding: 32px 22px 22px; border-radius: 14px; }
+    }
+  </style>
 </head>
 <body>
-  <div class="auth-layout">
-    <div class="auth-visual">
-      <div>
-        <h1>MiniSocial</h1>
-        <p>Connect with friends and the world around you.</p>
-      </div>
-    </div>
-    <div class="auth-form-container">
-      <div class="auth-card">
-        <h1 class="auth-logo-mobile">MiniSocial</h1>
-        <h2 class="mb-2 text-center">Welcome back</h2>
-        <div id="login-message" class="hidden" style="color:var(--error-color); margin-bottom:15px; text-align:center;"></div>
-        <form id="login-form">
-          <div class="form-group mb-1">
-            <input type="email" id="email" class="form-control" placeholder="Email address" required>
-          </div>
-          <div class="form-group mb-2">
-            <input type="password" id="password" class="form-control" placeholder="Password" required>
-          </div>
-          <button type="submit" class="btn">Log In</button>
-        </form>
-        <div class="text-center mt-2">
-          <span class="text-secondary">Don't have an account?</span> 
-          <a href="register.html" style="color:var(--primary-color); font-weight:600;">Sign up</a>
+  <div class="auth-page">
+    <div class="auth-card">
+      <h1 class="auth-logo">MiniSocial</h1>
+      <p class="auth-tagline">Connect with friends and the world around you.</p>
+
+      <h2 class="auth-title">Welcome back</h2>
+
+      <div id="auth-error" class="auth-error"></div>
+
+      <form id="login-form">
+        <div class="auth-field">
+          <i class="fa-regular fa-envelope"></i>
+          <input type="email" id="email" placeholder="Email" autocomplete="email" required>
         </div>
-      </div>
+        <div class="auth-field">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="auth-submit" id="login-btn">Log In</button>
+      </form>
+
+      <div class="auth-divider"></div>
+      <p class="auth-switch">Don't have an account? <a href="register.html">Sign up</a></p>
     </div>
   </div>
+
   <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const errorBox = document.getElementById('auth-error');
+      errorBox.classList.remove('show');
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+
+      const { status, data } = await fetchAPI('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+        }),
+      });
+
+      const token = data.token || data.data?.token;
+      const user = data.user || data.data?.user || data.data;
+
+      if (status >= 200 && status < 300 && token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        window.location.href = 'index.html';
+      } else {
+        errorBox.textContent = data.message || 'Login failed. Check your email and password.';
+        errorBox.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Log In';
+      }
+    });
+  </script>
 </body>
 </html>
