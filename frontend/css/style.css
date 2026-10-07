@@ -292,3 +292,22 @@ textarea.form-control { resize: vertical; min-height: 90px; line-height: 1.45; }
   .profile-avatar-large { width: 96px; height: 96px; }
   .profile-top, .profile-stats { justify-content: center; }
 }
+.image-upload-btn {
+  margin-right: auto; cursor: pointer; font-size: 22px;
+  color: var(--accent); padding: 4px 6px;
+}
+.image-upload-btn:hover { color: var(--accent-hover); }
+.create-post-actions { align-items: center; }
+
+.image-preview { position: relative; margin-top: 12px; }
+.image-preview img { display: block; max-width: 100%; max-height: 260px; border-radius: 8px; }
+.remove-image {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+  border: 0; border-radius: 50%; background: rgba(0,0,0,.7); color: #fff; cursor: pointer;
+}
+
+.post-image { display: block; width: 100%; max-height: 600px; object-fit: cover; background: #000; }
+.post-content.caption {
+  min-height: 0; justify-content: flex-start; text-align: left;
+  font-size: 15px; padding: 12px 18px; background: transparent;
+}
