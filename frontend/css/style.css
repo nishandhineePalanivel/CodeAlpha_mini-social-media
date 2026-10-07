@@ -235,3 +235,34 @@ input:focus { border-color: var(--accent); }
   .nav-item { padding: 10px; }
   .main-content { padding: 16px 12px 80px; }
 }
+
+/* ===== Profile page ===== */
+:root { --border-color: var(--border); }
+
+.hidden { display: none !important; }
+.mt-1 { margin-top: 12px; }
+
+#edit-profile-form-container {
+  max-width: 560px; margin: 0 auto 28px; padding: 22px;
+}
+#edit-profile-form-container h3 { margin: 0 0 18px; font-size: 18px; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; margin-bottom: 6px;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+}
+.form-control {
+  display: block; width: 100%; padding: 12px 14px; margin: 0;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 15px; outline: none;
+  transition: border-color .15s ease;
+}
+.form-control:focus { border-color: var(--accent); }
+textarea.form-control { resize: vertical; min-height: 90px; line-height: 1.45; }
+
+#edit-profile-form .btn { min-width: 96px; }
+
+#profile-container { padding: 24px 0 8px; }
+#user-posts-container { width: 100%; }
