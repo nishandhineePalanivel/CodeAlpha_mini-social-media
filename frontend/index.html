@@ -36,8 +36,13 @@
       <div class="create-post-box">
         <div class="avatar" id="my-avatar"></div>
         <form id="create-post-form" class="create-post-form">
-          <textarea id="post-content" class="create-post-input" placeholder="What's on your mind?" rows="2" required></textarea>
+          <textarea id="post-content" class="create-post-input" placeholder="What's on your mind?" rows="2"></textarea>
+          <div id="image-preview" class="image-preview hidden"></div>
           <div class="create-post-actions">
+            <label class="image-upload-btn" title="Add photo">
+              <i class="fa-regular fa-image"></i>
+              <input type="file" id="post-image" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+            </label>
             <button type="submit" class="btn">Post</button>
           </div>
         </form>
